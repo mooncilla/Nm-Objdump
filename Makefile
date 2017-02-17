@@ -8,7 +8,7 @@
 ## Last update Sat Feb 11 14:27:40 2017 
 ##
 
-CC		=       gcc
+CC		=       gcc -g -g3
 
 RM		=       rm -rf
 
@@ -44,10 +44,12 @@ $(ODNAME)	:	$(ODOBJS)
 			$(CC) -o $(ODNAME) $(ODOBJS) $(CFLAGS) $(ODINCLUDE)
 
 clean		:
-			$(RM) $(OBJS)
+			$(RM) $(NMOBJS)
+			$(RM) $(ODOBJS)
 
 fclean		:       clean
-			$(RM) $(NAME)
+			$(RM) $(NMNAME)
+			$(RM) $(ODNAME)
 
 re		:       fclean all
 

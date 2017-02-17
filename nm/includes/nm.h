@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 23:30:28 2017 Full Name
-** Last update	Fri Feb 17 00:16:28 2017 Full Name
+** Last update	Fri Feb 17 17:28:51 2017 Full Name
 */
 
 #ifndef _NM_H_
@@ -27,8 +27,7 @@
 typedef struct s_list
 {
   Elf64_Sym *sym_tbl;
-  int		*index;
-  struct t_list *next;
+  struct s_list *next;
 }              t_list;
 
 #endif /* !_NM_H_ */
