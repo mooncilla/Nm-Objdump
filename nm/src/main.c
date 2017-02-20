@@ -14,12 +14,13 @@ char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr)
 {
   char  c;
 
-  //printf("index= %d %d ", shdr[sym->st_shndx].sh_type, sym->st_shndx);
+  /*if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS)
+    printf("index= %d %d ", shdr[sym->st_shndx].sh_type, sym->st_shndx); */
   if (ELF64_ST_BIND(sym->st_info) == STB_GNU_UNIQUE)
     c = 'u';
-  else if (ELF32_ST_BIND(sym->st_info) == STB_WEAK)
+  else if (ELF64_ST_BIND(sym->st_info) == STB_WEAK)
   {
-    c = (ELF32_ST_TYPE(sym->st_info) == STT_OBJECT) ? 'V' : 'W';
+    c = (ELF64_ST_TYPE(sym->st_info) == STT_OBJECT) ? 'V' : 'W';
     if (sym->st_shndx == SHN_UNDEF)
       c += 32;
   }
@@ -60,17 +61,17 @@ bool is_ELF(Elf64_Ehdr eh)
 		return (0);
 }
 
-void read_section_header_table(int fd, Elf64_Ehdr eh, Elf64_Shdr *sh_table)
+void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
 {
 	int i;
   Elf32_Shdr *sh32;
 
   i = -1;
-	lseek(fd, (off_t)eh.e_shoff, SEEK_SET);
+	lseek(fd, (off_t)eh->e_shoff, SEEK_SET);
   sh32 = malloc(sizeof(Elf32_Shdr));
-  while (++i < eh.e_shnum)
+  while (++i < eh->e_shnum)
   {
-    if (eh.e_ident[EI_CLASS] == ELFCLASS32)
+    if (eh->e_ident[EI_CLASS] == ELFCLASS32)
     {
       read(fd, sh32, sizeof(Elf32_Shdr));
       sh_table[i].sh_name      = sh32->sh_name;
@@ -121,8 +122,19 @@ int				compare_str(char *str1, char *str2)
 
   str1_tmp = epur_str(str1);
   str2_tmp = epur_str(str2);
+  printf("%s %s \n",str1_tmp, str2_tmp);
   i = strcmp(str1_tmp, str2_tmp);
-  (strcmp(str1_tmp, str2_tmp) == 0 ? i = strcmp(str1, str2) : 0);
+  if (strcmp(str1_tmp, str2_tmp) == 0)
+  {
+    //i = strncmp(str1, str2, (strlen(str1) > strlen(str2) ? strlen(str2) : strlen(str1)));
+    /*(strlen(str1) > strlen(str2) ? str1[strlen(str2)] = '\0' :
+     strlen(str2) > strlen(str1) ? str2[strlen(str1)] = '\0' : 0 );*/
+    while (str1[0] == '_')
+      str1++;
+    while (str2[0] == '_')
+      str2++;
+    i = strcmp(str1, str2);
+  }
   free(str1_tmp);
   free(str2_tmp);
   return (i);
@@ -284,7 +296,7 @@ int main(int ac, char *av[])
     free(tmp);
   }
   sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
-  read_section_header_table(fd, *eh, sh_tbl);
+  read_section_header_table(fd, eh, sh_tbl);
   print_symbols(fd, eh, sh_tbl);
 	return 0;
 }
