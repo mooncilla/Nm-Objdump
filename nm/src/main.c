@@ -1,50 +1,53 @@
-/*
+  /*
 ** main.c for PSU_2016_nmobjdump
 **
 ** Made by	Full Name
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 11:09:24 2017 Full Name
-** Last update	Fri Feb 17 21:05:14 2017 Full Name
+** Last update	Sat Feb 18 00:33:15 2017 Full Name
 */
 
 #include      "../includes/nm.h"
 
-char            print_type(Elf64_Sym sym, Elf64_Shdr *shdr)
+char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr)
 {
   char  c;
 
-  if (ELF64_ST_BIND(sym.st_info) == STB_GNU_UNIQUE)
+  //printf("index= %d %d ", shdr[sym->st_shndx].sh_type, sym->st_shndx);
+  if (ELF64_ST_BIND(sym->st_info) == STB_GNU_UNIQUE)
     c = 'u';
-  else if (ELF32_ST_BIND(sym.st_info) == STB_WEAK)
+  else if (ELF32_ST_BIND(sym->st_info) == STB_WEAK)
   {
-    c = (ELF32_ST_TYPE(sym.st_info) == STT_OBJECT) ? 'V' : 'W';
-    if (sym.st_shndx == SHN_UNDEF)
+    c = (ELF32_ST_TYPE(sym->st_info) == STT_OBJECT) ? 'V' : 'W';
+    if (sym->st_shndx == SHN_UNDEF)
       c += 32;
   }
-  else if (sym.st_shndx == SHN_UNDEF)
+  else if (sym->st_shndx == SHN_UNDEF)
     c = 'U';
-    else if (sym.st_shndx == SHN_ABS)
+  else if (sym->st_shndx == SHT_SHLIB)
+    c = 'N';
+  else if (sym->st_shndx == SHN_ABS)
     c = 'A';
-  else if (sym.st_shndx == SHN_COMMON)
+  else if (sym->st_shndx == SHN_COMMON)
     c = 'C';
-  else if (shdr[sym.st_shndx].sh_type == SHT_NOBITS
-       && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
+  else if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
+       && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
     c = 'B';
-  else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-       && shdr[sym.st_shndx].sh_flags == SHF_ALLOC)
+  else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
+       && shdr[sym->st_shndx].sh_flags == SHF_ALLOC)
     c = 'R';
-  else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-       && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
+  else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
+       && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
     c = 'D';
-  else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-       && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_EXECINSTR))
+  else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
+       && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_EXECINSTR))
     c = 'T';
-  else if (shdr[sym.st_shndx].sh_type == SHT_DYNAMIC)
+  else if (shdr[sym->st_shndx].sh_type == SHT_DYNAMIC)
     c = 'D';
   else
     c = '?';
-  if (ELF64_ST_BIND(sym.st_info) == STB_LOCAL && c != '?')
+  if (ELF32_ST_BIND(sym->st_info) == STB_LOCAL && c != '?')
     c += 32;
   return c;
 }
@@ -60,11 +63,54 @@ bool is_ELF(Elf64_Ehdr eh)
 void read_section_header_table(int fd, Elf64_Ehdr eh, Elf64_Shdr *sh_table)
 {
 	int i;
+  Elf32_Shdr *sh32;
 
   i = -1;
 	lseek(fd, (off_t)eh.e_shoff, SEEK_SET);
+  sh32 = malloc(sizeof(Elf32_Shdr));
   while (++i < eh.e_shnum)
-  	read(fd, &sh_table[i], eh.e_shentsize);
+  {
+    if (eh.e_ident[EI_CLASS] == ELFCLASS32)
+    {
+      read(fd, sh32, sizeof(Elf32_Shdr));
+      sh_table[i].sh_name      = sh32->sh_name;
+      sh_table[i].sh_type      = sh32->sh_type;
+      sh_table[i].sh_flags     = sh32->sh_flags;
+      sh_table[i].sh_addr      = (Elf64_Addr) sh32->sh_addr;
+      sh_table[i].sh_offset    = (Elf64_Off) sh32->sh_offset;
+      sh_table[i].sh_size      = (uint64_t) sh32->sh_size;
+      sh_table[i].sh_link      = sh32->sh_link;
+      sh_table[i].sh_info      = sh32->sh_info;
+      sh_table[i].sh_addralign = (uint64_t) sh32->sh_addralign;
+      sh_table[i].sh_entsize   = (uint64_t) sh32->sh_entsize;
+    }
+    else
+      read(fd, &sh_table[i], sizeof(Elf64_Shdr));
+  }
+}
+
+char *epur_str(char *str)
+{
+  char *epured;
+  int i;
+  int j;
+
+  j = 0;
+  i = -1;
+  epured = malloc(strlen(str) + 1);
+  while (str[++i])
+  {
+    if (/*str[i] != '_' && str[i] != '@'*/ (str[i] >= 'a' && str[i] <= 'z')
+    || (str[i] >= 'A' && str[i] <= 'Z')
+    || (str[i] >= '0' && str[i] <= '9'))
+    {
+      (str[i] >= 'A' && str[i] <= 'Z' ? epured[j] = str[i] + 32
+        : (epured[j] = str[i]));
+      j++;
+    }
+  }
+  epured[j] = '\0';
+  return (epured);
 }
 
 int				compare_str(char *str1, char *str2)
@@ -73,27 +119,10 @@ int				compare_str(char *str1, char *str2)
   char  *str1_tmp;
   char  *str2_tmp;
 
-  char *test1;
-  char *test2;
-
-  i = 0;
-  str1_tmp = strdup(str1);
-  str2_tmp = strdup(str2);
-  test1 = str1_tmp;
-  test2 = str2_tmp;
-
-  while (test1[0] == '_')
-    test1++;
-  while (test2[0] == '_')
-    test2++;
-  while (test1[i] && test2[i])
-  {
-    (test1[i] >= 'A' && test1[i] <= 'Z' ? test1[i] += 32 : 0);
-    (test2[i] >= 'A' && test2[i] <= 'Z' ? test2[i] += 32 : 0);
-    i++;
-  }
-  //printf("value=%s %s\n", test1, test2);
-  i = strcmp(test1, test2);
+  str1_tmp = epur_str(str1);
+  str2_tmp = epur_str(str2);
+  i = strcmp(str1_tmp, str2_tmp);
+  (strcmp(str1_tmp, str2_tmp) == 0 ? i = strcmp(str1, str2) : 0);
   free(str1_tmp);
   free(str2_tmp);
   return (i);
@@ -102,88 +131,95 @@ int				compare_str(char *str1, char *str2)
 void			add_to_list(t_list *list, Elf64_Sym *symb, void *str_ptr)
 {
   t_list *tmp;
+  Elf64_Sym *sym_tmp;
 
   tmp = list;
   if (list->sym_tbl == NULL)
     list->sym_tbl = symb;
-  /*else if (compare_str(str_ptr + list->sym_tbl->st_name,
+  else if (compare_str(str_ptr + list->sym_tbl->st_name,
        str_ptr + symb->st_name) > 0)
   {
-      Elf64_Sym *sym_tmp = list->sym_tbl;
-
+      sym_tmp = list->sym_tbl;
       tmp = list->next;
       list->sym_tbl = symb;
       list->next = malloc(sizeof(t_list));
       list->next->sym_tbl = sym_tmp;
       list->next->next = tmp;
-  }*/
+  }
   else
   {
     while (list->next && compare_str(str_ptr + list->next->sym_tbl->st_name,
-       str_ptr + symb->st_name) < 0)
+       str_ptr + symb->st_name) <= 0)
       list = list->next;
     tmp = list->next;
     list->next = malloc(sizeof(t_list));
     list->next->sym_tbl = symb;
     list->next->next = tmp;
-    //compare_str(str_ptr + list->sym_tbl->st_name, str_ptr + symb->st_name);
   }
-  //printf("INDEX = %016x SYMB = %s\n", index, str_ptr + symb->st_name);
 }
 
-Elf64_Sym *read_section(int fd, Elf64_Shdr sh, void *str_ptr, t_list *list)
+Elf64_Sym *read_section(Elf64_Ehdr *eh, int fd, Elf64_Shdr sh, void *str_ptr, t_list *list)
 {
-	//char* buff = malloc(sh.sh_size);
   Elf64_Sym *buff;
+  Elf32_Sym *buff_32;
   int i;
   i = -1;
 
   lseek(fd, (off_t)sh.sh_offset, SEEK_SET);
-  while (++i * sizeof(Elf64_Sym) < sh.sh_size)
+  while (++i * (eh->e_ident[EI_CLASS] == ELFCLASS32 ?
+     sizeof(Elf32_Sym) : sizeof(Elf64_Sym)) < sh.sh_size)
   {
     buff = malloc(sizeof(Elf64_Sym));
-    read(fd, buff, sizeof(Elf64_Sym));
-    //printf("%016lx %s\n", buff->st_value, str_ptr + buff->st_name);
-    if (strlen((str_ptr + buff->st_name)) > 0 && buff->st_shndx != SHN_ABS)
+    if (eh->e_ident[EI_CLASS] == ELFCLASS32)
+    {
+      buff_32 = malloc(sizeof(Elf32_Sym));
+      read(fd, buff_32, sizeof(Elf32_Sym));
+      buff->st_name = buff_32->st_name;
+      buff->st_info = buff_32->st_info;
+      buff->st_other = buff_32->st_other;
+      buff->st_shndx = buff_32->st_shndx;
+      buff->st_value = (Elf64_Addr) buff_32->st_value;
+      buff->st_size = (uint64_t) buff_32->st_size;
+    }
+    else
+      read(fd, buff, sizeof(Elf64_Sym));
+    if (strlen((str_ptr + buff->st_name)) > 0 &&
+    (buff->st_shndx == SHN_ABS ? (ELF64_ST_BIND(buff->st_info) == STB_LOCAL ? 0 : 1) : 1))
       add_to_list(list, buff, str_ptr);
-  }
+    }
 	 return (buff);
 }
 
 void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol_table)
 {
-	void *str_ptr;
-	Elf64_Sym *sym_tbl;
-  int symbol_count;
-  int str_tbl_ndx;
+	char *str_ptr;
+	int str_tbl_ndx;
   t_list *list;
 
   list = malloc(sizeof(t_list)); list->next = NULL; list->sym_tbl = NULL;
   str_tbl_ndx = sh_table[symbol_table].sh_link;
-//  str_ptr = (void *) read_section(fd, sh_table[str_tbl_ndx]);
   str_ptr = malloc(sh_table[str_tbl_ndx].sh_size);
   lseek(fd, (off_t)sh_table[str_tbl_ndx].sh_offset, SEEK_SET);
 	read(fd, str_ptr, sh_table[str_tbl_ndx].sh_size);
 
-  symbol_count = (sh_table[symbol_table].sh_size / sizeof(Elf64_Sym));
-
-  sym_tbl = read_section(fd, sh_table[symbol_table], str_ptr, list);
-
-
-//char            print_type(Elf64_Sym sym, Elf64_Shdr *shdr);
+  read_section(eh, fd, sh_table[symbol_table], str_ptr, list);
 	while (list)
   {
     if (strlen(str_ptr + list->sym_tbl->st_name) > 0)
     {
-	    if (list->sym_tbl->st_value > 0)
+	    if (list->sym_tbl->st_shndx != SHN_UNDEF)
       {
-        printf("%016lx ", list->sym_tbl->st_value);
-        printf("%c ", print_type(*list->sym_tbl, sh_table));
+        (eh->e_ident[EI_CLASS] == ELFCLASS32 ?
+          printf("%08lx ", list->sym_tbl->st_value) :
+          printf("%016lx ", list->sym_tbl->st_value));
+        printf("%c ", print_type(list->sym_tbl, sh_table));
         printf("%s\n", (char *) (str_ptr + list->sym_tbl->st_name));
       }
       else
       {
-        printf("%18c ", print_type(*list->sym_tbl, sh_table));
+        (eh->e_ident[EI_CLASS] == ELFCLASS32 ?
+          printf("%10c ", print_type(list->sym_tbl, sh_table)) :
+            printf("%18c ", print_type(list->sym_tbl, sh_table)));
         printf("%s\n", (char *) (str_ptr + list->sym_tbl->st_name));
       }
     }
@@ -195,13 +231,14 @@ void print_symbols(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
 {
 	int i;
 
-	for(i = 0; i < eh->e_shnum; i++)
+  i = -1;
+	while (++i < eh->e_shnum)
   {
 		if ((sh_table[i].sh_type == SHT_SYMTAB)/*
         || (sh_table[i].sh_type == SHT_DYNSYM)*/)
     {
+      //printf("\n[Section %03d]", i);
       print_symbol_table(fd, eh, sh_table, i);
-			//printf("\n[Section %03d]", i);
 		}
 	}
 }
@@ -211,10 +248,12 @@ int main(int ac, char *av[])
 	int fd;
 	Elf64_Ehdr *eh;
 	Elf64_Shdr *sh_tbl;
+  Elf64_Ehdr *tmp;
+  Elf32_Ehdr *eh32;
 
 	if (ac != 2)
 		return (0);
-	fd = open(av[1], O_RDONLY|O_SYNC);
+	fd = open(av[1], O_RDONLY | O_SYNC);
 	if (fd < 0)
   {
 		printf("Unable to open %s\n", av[1]);
@@ -223,9 +262,29 @@ int main(int ac, char *av[])
   eh = malloc(sizeof(Elf64_Ehdr));
   lseek(fd, (off_t)0, SEEK_SET);
   read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
-  sh_tbl = malloc(eh->e_shentsize * eh->e_shnum);
-	read_section_header_table(fd, *eh, sh_tbl);
+  if (eh->e_ident[EI_CLASS] == ELFCLASS32)
+  {
+    tmp = malloc(sizeof(Elf64_Ehdr));
+    memcpy(tmp, eh, sizeof(Elf64_Ehdr));
+    eh32 = (Elf32_Ehdr *) tmp;
 
-	print_symbols(fd, eh, sh_tbl);
+    eh->e_type = eh32->e_type;
+    eh->e_machine = eh32->e_machine;
+    eh->e_version = eh32->e_version;
+    eh->e_entry =  (Elf64_Addr) eh32->e_entry;
+    eh->e_phoff = (Elf64_Off) eh32->e_phoff;
+    eh->e_shoff = (Elf64_Off) eh32->e_shoff;
+    eh->e_flags = eh32->e_flags;
+    eh->e_ehsize = eh32->e_ehsize;
+    eh->e_phentsize = eh32->e_phentsize;
+    eh->e_phnum = eh32->e_phnum;
+    eh->e_shentsize = eh32->e_shentsize;
+    eh->e_shnum = eh32->e_shnum;
+    eh->e_shstrndx = eh32->e_shstrndx;
+    free(tmp);
+  }
+  sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
+  read_section_header_table(fd, *eh, sh_tbl);
+  print_symbols(fd, eh, sh_tbl);
 	return 0;
 }
