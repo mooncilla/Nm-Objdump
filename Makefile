@@ -13,6 +13,7 @@ CC		=       gcc -g -g3
 RM		=       rm -rf
 
 CFLAGS		+=	-Wall -Wextra -W #-Werror
+CFLAGS		+=	-I./nm/includes/
 
 NMINCLUDE	=	-I./nm/includes/
 
@@ -20,7 +21,9 @@ ODINCLUDE	=	-I./objdump/includes/
 
 NMNAME		=	my_nm
 
-NMSRCS		=	nm/src/main.c
+NMSRCS		=	nm/src/main.c		\
+			nm/src/fill_32_struct.c	\
+			nm/src/get_type.c
 
 NMOBJS		=	$(NMSRCS:.c=.o)
 
