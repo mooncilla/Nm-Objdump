@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 13:40:24 2017 Full Name
-** Last update	Thu Feb 23 16:41:24 2017 Full Name
+** Last update	Thu Feb 23 16:53:50 2017 Full Name
 */
 
 #include      "nm.h"
@@ -43,7 +43,8 @@ static char	by_shdr_name(const char *name)
 char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
 {
   char  c;
-c = '?';
+
+  c = '?';
   if (ELF64_ST_BIND(sym->st_info) == STB_GNU_UNIQUE)
     c = 'u';
   else if (ELF64_ST_BIND(sym->st_info) == STB_WEAK)
@@ -74,8 +75,8 @@ c = '?';
        c += 32;
       return (c);
     }
-  if (sym->st_shndx == SHT_SHLIB)
-    c = 'N';
+/*  if (sym->st_shndx == SHT_SHLIB)
+    c = 'N'; */
   else if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
     c = 'B';
@@ -90,18 +91,24 @@ c = '?';
     c = 'T';
   else if (shdr[sym->st_shndx].sh_type == SHT_DYNAMIC)
     c = 'D';
-  else if (shdr[sym->st_shndx].sh_type ==  SHT_INIT_ARRAY)
-    return ('t');
-  else if ((shdr[sym->st_shndx].sh_flags & SHF_WRITE) != SHF_WRITE
+/*  else if (shdr[sym->st_shndx].sh_type ==  SHT_INIT_ARRAY)
+    return ('t'); */
+/*  else if ((shdr[sym->st_shndx].sh_flags & SHF_WRITE) != SHF_WRITE
     && (shdr[sym->st_shndx].sh_flags & SHF_EXECINSTR) != SHF_EXECINSTR)
     {
       if (shdr->sh_type == SHT_GROUP)
  	      return ('n');
       return ('r');
+    }  */
+  else if ((shdr->sh_flags & SHF_WRITE) != SHF_WRITE)
+    {
+      if (shdr->sh_type == SHT_GROUP)
+	      return ('n');
+      return ('r');
     }
-  else
-    c = '?';
-  if (ELF32_ST_BIND(sym->st_info) == STB_LOCAL && c != '?')
+  else if (shdr->sh_type == SHT_PROGBITS || shdr->sh_type == SHT_DYNAMIC)
+    return ('d');
+  if (c != '?' && ELF32_ST_BIND(sym->st_info) == STB_LOCAL)
     c += 32;
   return c;
 }
