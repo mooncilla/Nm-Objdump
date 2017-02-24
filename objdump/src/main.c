@@ -39,7 +39,8 @@ int	print_header(Elf64_Ehdr *eh, char *name)
   printf("architecture: %s, flags 0x%08x:\n",
    (eh->e_machine == EM_X86_64 ? "i386:x86-64" : "UNKNOWN!"),
 	 eh->e_flags);
-  printf("start address 0x%016lx\n\n", eh->e_entry);
+  printf("start address 0x%0*lx\n\n", eh->e_machine == EM_X86_64 ? 16 : 8,
+   eh->e_entry);
   return (1);
 }
 
@@ -63,7 +64,7 @@ unsigned int  print_s_line_bytes(char *s_str, unsigned int	shdr_end,
      }
      i += j;
   }
-  return (i);
+    return (i);
 }
 
 void	print_section(char *s_str, Elf64_Shdr *shdr)
@@ -95,30 +96,32 @@ void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
 {
 	int i;
   char *str_ptr;
+  Elf64_Shdr *sh_strtab;
+  char *sh_strtab_p;
 
   i = -1;
-  Elf64_Shdr *sh_strtab = &sh_table[eh->e_shstrndx];
-  char *sh_strtab_p = malloc(sh_strtab->sh_size);
+  sh_strtab = &sh_table[eh->e_shstrndx];
+  sh_strtab_p = malloc(sh_strtab->sh_size);
   lseek(fd, (off_t)sh_strtab->sh_offset, SEEK_SET);
   read(fd, sh_strtab_p, sh_strtab->sh_size);
-
 	while (++i < eh->e_shnum)
   {
-    if (sh_table[i].sh_type != SHT_NOBITS &&
-	  sh_table[i].sh_type != SHT_SYMTAB &&
-	  sh_table[i].sh_type != SHT_NULL &&
-	  (sh_table[i].sh_type != SHT_STRTAB ||
-	   sh_table[i].sh_flags & SHF_ALLOC))
-     {
-        str_ptr = malloc(sh_table[i].sh_size);
-        lseek(fd, (off_t)sh_table[i].sh_offset, SEEK_SET);
-        read(fd, str_ptr, sh_table[i].sh_size);
-        printf("Contents of section %s:\n",
-        sh_strtab_p +  sh_table[i].sh_name);
-        print_section(str_ptr, &sh_table[i]);
-        free(str_ptr);
+    if (sh_table[i].sh_type != SHT_NOBITS
+      && sh_table[i].sh_type != SHT_SYMTAB
+      && sh_table[i].sh_type != SHT_NULL
+      && (sh_table[i].sh_type != SHT_STRTAB
+      || sh_table[i].sh_flags & SHF_ALLOC))
+    {
+      str_ptr = malloc(sh_table[i].sh_size);
+      lseek(fd, (off_t)sh_table[i].sh_offset, SEEK_SET);
+      read(fd, str_ptr, sh_table[i].sh_size);
+      printf("Contents of section %s:\n",
+      sh_strtab_p +  sh_table[i].sh_name);
+      print_section(str_ptr, &sh_table[i]);
+      free(str_ptr);
     }
 	}
+  free(sh_strtab_p);
 }
 
 int main(int ac, char *av[])
@@ -136,15 +139,16 @@ int main(int ac, char *av[])
 		printf("Unable to open %s\n", av[1]);
 		return (0);
 	}
-  setlocale(LC_ALL, "");
   eh = malloc(sizeof(Elf64_Ehdr));
   lseek(fd, (off_t)0, SEEK_SET);
   read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
   if (eh->e_ident[EI_CLASS] == ELFCLASS32)
     fill_Eh32(eh, *eh);
+  printf("%02x", (unsigned char) eh->e_flags);
   sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
   read_section_header_table(fd, eh, sh_tbl);
   print_header(eh, av[1]);
   print_section_tables(fd, eh, sh_tbl);
+  free(eh);
 	return 0;
 }

@@ -117,7 +117,6 @@ void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol
           printf("%016lx ", list->sym_tbl->st_value));
           printf("%c ", print_type(list->sym_tbl, sh_table, sh_strtab_p));
           printf("%s\n", (char *) (str_ptr + list->sym_tbl->st_name));
-          //printf("====%s\n", sh_strtab_p +  sh_table[list->sym_tbl->st_shndx].sh_name);
       }
       else
       {
@@ -129,6 +128,7 @@ void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol
     }
     list = list->next;
 	}
+  free(sh_strtab_p);
 }
 
 void print_symbols(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
@@ -138,8 +138,7 @@ void print_symbols(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
   i = -1;
 	while (++i < eh->e_shnum)
   {
-		if ((sh_table[i].sh_type == SHT_SYMTAB)/*
-        || (sh_table[i].sh_type == SHT_DYNSYM)*/)
+		if (sh_table[i].sh_type == SHT_SYMTAB)
       print_symbol_table(fd, eh, sh_table, i);
 	 }
 }

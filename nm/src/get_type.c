@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 13:40:24 2017 Full Name
-** Last update	Fri Feb 24 02:31:23 2017 Full Name
+** Last update	Sat Feb 25 00:25:30 2017 Full Name
 */
 
 #include      "nm.h"
@@ -75,8 +75,6 @@ char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
        c += 32;
       return (c);
     }
-/*  if (sym->st_shndx == SHT_SHLIB)
-    c = 'N'; */
   else if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
     c = 'B';
@@ -91,15 +89,6 @@ char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
     c = 'T';
   else if (shdr[sym->st_shndx].sh_type == SHT_DYNAMIC)
     c = 'D';
-/*  else if (shdr[sym->st_shndx].sh_type ==  SHT_INIT_ARRAY)
-    return ('t'); */
-/*  else if ((shdr[sym->st_shndx].sh_flags & SHF_WRITE) != SHF_WRITE
-    && (shdr[sym->st_shndx].sh_flags & SHF_EXECINSTR) != SHF_EXECINSTR)
-    {
-      if (shdr->sh_type == SHT_GROUP)
- 	      return ('n');
-      return ('r');
-    }  */
   else if ((shdr->sh_flags & SHF_WRITE) != SHF_WRITE)
     {
       if (shdr->sh_type == SHT_GROUP)
