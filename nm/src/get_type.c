@@ -5,12 +5,12 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 13:40:24 2017 Full Name
-** Last update	Thu Feb 23 16:53:50 2017 Full Name
+** Last update	Fri Feb 24 02:31:23 2017 Full Name
 */
 
 #include      "nm.h"
 
-static char	by_shdr_name(const char *name)
+static char	try_shdr_name(const char *name)
 {
   if (strcmp(name, ".bss") == 0)
     return ('b');
@@ -61,7 +61,7 @@ char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
     c = 'A';
   else if (sym->st_shndx != SHN_ABS)
       {
-        c = by_shdr_name(sh_strtab_p +  shdr[sym->st_shndx].sh_name);
+        c = try_shdr_name(sh_strtab_p +  shdr[sym->st_shndx].sh_name);
         if (c != '?')
           {
             if (ELF32_ST_BIND(sym->st_info) == STB_GLOBAL)

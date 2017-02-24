@@ -14,6 +14,7 @@ RM		=       rm -rf
 
 CFLAGS		+=	-Wall -Wextra -W #-Werror
 CFLAGS		+=	-I./nm/includes/
+CFLAGS		+=	-I./objdump/includes/
 
 NMINCLUDE	=	-I./nm/includes/
 
@@ -29,12 +30,12 @@ NMOBJS		=	$(NMSRCS:.c=.o)
 
 ODNAME		=	my_objdump
 
-ODSRCS		=	objdump/src/main.c
+ODSRCS		=	objdump/src/main.c	\
+			objdump/src/fill_32_struct.c	
 
-ODOBJS		=	$(NMSRCS:.c=.o)
+ODOBJS		=	$(ODSRCS:.c=.o)
 
-all		:       $(NMNAME)
-			$(ODNAME)
+all		:	$(NMNAME) $(ODNAME)
 
 nm		:	$(NMNAME)
 

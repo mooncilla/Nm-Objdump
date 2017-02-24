@@ -90,6 +90,7 @@ void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol
 	char *str_ptr;
 	int str_tbl_ndx;
   t_list *list;
+  Elf64_Shdr *sh_strtab;
 
   list = malloc(sizeof(t_list)); list->next = NULL; list->sym_tbl = NULL;
   str_tbl_ndx = sh_table[symbol_table].sh_link;
@@ -99,7 +100,7 @@ void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol
   read_section(eh, fd, sh_table[symbol_table], str_ptr, list);
 
 
-  Elf64_Shdr *sh_strtab = &sh_table[eh->e_shstrndx];
+  sh_strtab = &sh_table[eh->e_shstrndx];
   char *sh_strtab_p = malloc(sh_strtab->sh_size);
   lseek(fd, (off_t)sh_strtab->sh_offset, SEEK_SET);
   read(fd, sh_strtab_p, sh_strtab->sh_size);
