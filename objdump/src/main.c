@@ -129,28 +129,30 @@ int main(int ac, char *av[])
 	int fd;
 	Elf64_Ehdr *eh;
 	Elf64_Shdr *sh_tbl;
+  int i;
 
-	if (ac != 2)
-    fd = open("a.out", O_RDONLY | O_SYNC);
-  else
-    fd = open(av[1], O_RDONLY | O_SYNC);
-	if (fd < 0)
+  i = (ac == 1 ? -1 : 0);
+  while (++i < ac)
   {
-    printf("%s: '%s': No such file\n", av[0], av[1]);
-		return (0);
-	}
-  eh = malloc(sizeof(Elf64_Ehdr));
-  lseek(fd, (off_t)0, SEEK_SET);
-  read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
-  if (is_ELF(eh, av[0], av[1]) != 1)
-    return (0);
-  if (eh->e_ident[EI_CLASS] == ELFCLASS32)
-    fill_Eh32(eh, *eh);
-  printf("%02x", (unsigned char) eh->e_flags);
-  sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
-  read_section_header_table(fd, eh, sh_tbl);
-  print_header(eh, av[1]);
-  print_section_tables(fd, eh, sh_tbl);
-  free(eh);
+    fd = open((ac == 1) ? "a.out" : av[i], O_RDONLY | O_SYNC);
+	  if (fd > 0)
+    {
+      eh = malloc(sizeof(Elf64_Ehdr));
+      lseek(fd, (off_t)0, SEEK_SET);
+      read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
+      if (is_ELF(eh, av[0], (ac == 1) ? "a.out" : av[i]) == 1)
+      {
+        if (eh->e_ident[EI_CLASS] == ELFCLASS32)
+          fill_Eh32(eh, *eh);
+        sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
+        read_section_header_table(fd, eh, sh_tbl);
+        print_header(eh, (ac == 1) ? "a.out" : av[i]);
+        print_section_tables(fd, eh, sh_tbl);
+        free(eh);
+      }
+    }
+    else
+      printf("%s: '%s': No such file\n", av[0], av[i]);
+  }
 	return 0;
 }
