@@ -23,7 +23,7 @@ void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
 	int i;
 
   i = -1;
-	lseek(fd, (off_t)eh->e_shoff, SEEK_SET);
+  lseek(fd, eh->e_shoff, SEEK_SET);
   while (++i < eh->e_shnum)
   {
     if (eh->e_ident[EI_CLASS] == ELFCLASS32)
@@ -68,7 +68,6 @@ void  read_section(Elf64_Ehdr *eh, int fd, Elf64_Shdr sh, void *str_ptr, t_list 
   Elf64_Sym *buff;
   int i;
   i = -1;
-
   lseek(fd, (off_t)sh.sh_offset, SEEK_SET);
 
   while (++i * (eh->e_ident[EI_CLASS] == ELFCLASS32 ?
@@ -95,16 +94,14 @@ void print_symbol_table(int fd,	Elf64_Ehdr *eh, Elf64_Shdr *sh_table, int symbol
   list = malloc(sizeof(t_list)); list->next = NULL; list->sym_tbl = NULL;
   str_tbl_ndx = sh_table[symbol_table].sh_link;
   str_ptr = malloc(sh_table[str_tbl_ndx].sh_size);
-  lseek(fd, (off_t)sh_table[str_tbl_ndx].sh_offset, SEEK_SET);
+  int test = lseek(fd, (off_t)sh_table[str_tbl_ndx].sh_offset, SEEK_SET);
 	read(fd, str_ptr, sh_table[str_tbl_ndx].sh_size);
   read_section(eh, fd, sh_table[symbol_table], str_ptr, list);
-
 
   sh_strtab = &sh_table[eh->e_shstrndx];
   char *sh_strtab_p = malloc(sh_strtab->sh_size);
   lseek(fd, (off_t)sh_strtab->sh_offset, SEEK_SET);
   read(fd, sh_strtab_p, sh_strtab->sh_size);
-
 
 	while (list)
   {
@@ -136,7 +133,7 @@ void print_symbols(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
 	int i;
 
   i = -1;
-	while (++i < eh->e_shnum)
+  while (++i < eh->e_shnum)
   {
 		if (sh_table[i].sh_type == SHT_SYMTAB)
       print_symbol_table(fd, eh, sh_table, i);
@@ -160,14 +157,22 @@ int main(int ac, char *av[])
       eh = malloc(sizeof(Elf64_Ehdr));
       lseek(fd, (off_t)0, SEEK_SET);
       read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
-      if (is_ELF(eh, av[0], av[1]) == 1)
+      if (is_ELF(eh, av[0], (ac == 1) ? "a.out" : av[i]) == 1)
       {
-        (ac > 2 ? printf("\n%s:\n", av[i]) : 0);
         if (eh->e_ident[EI_CLASS] == ELFCLASS32)
           fill_Eh32(eh, *eh);
-        sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
-        read_section_header_table(fd, eh, sh_tbl);
-        print_symbols(fd, eh, sh_tbl);
+        if (lseek(fd, eh->e_shoff, SEEK_SET)
+         + (eh->e_shentsize * eh->e_shnum) > lseek(fd, 0, SEEK_END))
+          fprintf(stderr, "%s: %s: File truncated\n", av[0], av[i]);
+        else
+        {
+          (ac > 2 ? printf("\n%s:\n", av[i]) : 0);
+          sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
+          read_section_header_table(fd, eh, sh_tbl);
+          print_symbols(fd, eh, sh_tbl);
+          free(eh);
+          free(sh_tbl);
+        }
       }
     }
     else

@@ -144,11 +144,18 @@ int main(int ac, char *av[])
       {
         if (eh->e_ident[EI_CLASS] == ELFCLASS32)
           fill_Eh32(eh, *eh);
-        sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
-        read_section_header_table(fd, eh, sh_tbl);
-        print_header(eh, (ac == 1) ? "a.out" : av[i]);
-        print_section_tables(fd, eh, sh_tbl);
-        free(eh);
+        if (lseek(fd, eh->e_shoff, SEEK_SET)
+         + (eh->e_shentsize * eh->e_shnum) > lseek(fd, 0, SEEK_END))
+          fprintf(stderr, "%s: %s: File truncated\n", av[0], av[i]);
+        else
+        {
+          sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
+          read_section_header_table(fd, eh, sh_tbl);
+          print_header(eh, (ac == 1) ? "a.out" : av[i]);
+          print_section_tables(fd, eh, sh_tbl);
+          free(eh);
+          free(sh_tbl);
+        }
       }
     }
     else
