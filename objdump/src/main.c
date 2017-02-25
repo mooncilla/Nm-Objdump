@@ -124,11 +124,36 @@ void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
   free(sh_strtab_p);
 }
 
+void launch_objdump(int fd, int ac, char *name, char *file_name)
+{
+  Elf64_Ehdr *eh;
+  Elf64_Shdr *sh_tbl;
+
+  eh = malloc(sizeof(Elf64_Ehdr));
+  lseek(fd, (off_t)0, SEEK_SET);
+  read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
+  if (is_ELF(eh, name, (ac == 1) ? "a.out" : file_name) == 1)
+  {
+    if (eh->e_ident[EI_CLASS] == ELFCLASS32)
+      fill_Eh32(eh, *eh);
+    if (lseek(fd, eh->e_shoff, SEEK_SET)
+     + (eh->e_shentsize * eh->e_shnum) > lseek(fd, 0, SEEK_END))
+      fprintf(stderr, "%s: %s: File truncated\n", name, file_name);
+    else
+    {
+      sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
+      read_section_header_table(fd, eh, sh_tbl);
+      print_header(eh, (ac == 1) ? "a.out" : file_name);
+      print_section_tables(fd, eh, sh_tbl);
+      free(eh);
+      free(sh_tbl);
+    }
+  }
+}
+
 int main(int ac, char *av[])
 {
 	int fd;
-	Elf64_Ehdr *eh;
-	Elf64_Shdr *sh_tbl;
   int i;
 
   i = (ac == 1 ? -1 : 0);
@@ -137,26 +162,7 @@ int main(int ac, char *av[])
     fd = open((ac == 1) ? "a.out" : av[i], O_RDONLY | O_SYNC);
 	  if (fd > 0)
     {
-      eh = malloc(sizeof(Elf64_Ehdr));
-      lseek(fd, (off_t)0, SEEK_SET);
-      read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
-      if (is_ELF(eh, av[0], (ac == 1) ? "a.out" : av[i]) == 1)
-      {
-        if (eh->e_ident[EI_CLASS] == ELFCLASS32)
-          fill_Eh32(eh, *eh);
-        if (lseek(fd, eh->e_shoff, SEEK_SET)
-         + (eh->e_shentsize * eh->e_shnum) > lseek(fd, 0, SEEK_END))
-          fprintf(stderr, "%s: %s: File truncated\n", av[0], av[i]);
-        else
-        {
-          sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
-          read_section_header_table(fd, eh, sh_tbl);
-          print_header(eh, (ac == 1) ? "a.out" : av[i]);
-          print_section_tables(fd, eh, sh_tbl);
-          free(eh);
-          free(sh_tbl);
-        }
-      }
+      launch_objdump(fd, ac, av[0], (ac == 1) ? "a.out" : av[i]);
     }
     else
       printf("%s: '%s': No such file\n", av[0], av[i]);
