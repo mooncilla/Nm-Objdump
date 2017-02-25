@@ -22,15 +22,15 @@ ODINCLUDE	=	-I./objdump/includes/
 
 NMNAME		=	my_nm
 
-NMSRCS		=	nm/src/main.c		\
-			nm/src/fill_32_struct.c	\
+NMSRCS		=	nm/src/main.c			\
+			nm/src/fill_32_struct.c		\
 			nm/src/get_type.c
 
 NMOBJS		=	$(NMSRCS:.c=.o)
 
 ODNAME		=	my_objdump
 
-ODSRCS		=	objdump/src/main.c	\
+ODSRCS		=	objdump/src/main.c		\
 			objdump/src/fill_32_struct.c	
 
 ODOBJS		=	$(ODSRCS:.c=.o)

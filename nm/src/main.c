@@ -10,12 +10,12 @@
 
 #include      "nm.h"
 
-bool is_ELF(Elf64_Ehdr eh)
+bool is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 {
-	if(!strncmp((char*)eh.e_ident, "\177ELF", 4))
+	if(strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
 		return (1);
-  else
-		return (0);
+  printf("%s: %s: File format not recognized\n", name, file_name);
+	return (0);
 }
 
 void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
@@ -155,13 +155,15 @@ int main(int ac, char *av[])
     fd = open(av[1], O_RDONLY | O_SYNC);
 	if (fd < 0)
   {
-		printf("Unable to open %s\n", av[1]);
+    printf("%s: '%s': No such file\n", av[0], av[1]);
 		return (0);
 	}
   setlocale(LC_ALL, "");
   eh = malloc(sizeof(Elf64_Ehdr));
   lseek(fd, (off_t)0, SEEK_SET);
   read(fd, (Elf64_Ehdr *)eh, sizeof(Elf64_Ehdr));
+  if (is_ELF(eh, av[0], av[1]) != 1)
+    return (0);
   if (eh->e_ident[EI_CLASS] == ELFCLASS32)
     fill_Eh32(eh, *eh);
   sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
