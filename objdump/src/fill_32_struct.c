@@ -10,22 +10,22 @@
 
 #include      "objdump.h"
 
-void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_table)
+void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
 {
   Elf32_Shdr *sh32;
 
   sh32 = malloc(sizeof(Elf32_Shdr));
   read(fd, sh32, sizeof(Elf32_Shdr));
-  sh_table[i].sh_name      = sh32->sh_name;
-  sh_table[i].sh_type      = sh32->sh_type;
-  sh_table[i].sh_flags     = sh32->sh_flags;
-  sh_table[i].sh_addr      = (Elf64_Addr) sh32->sh_addr;
-  sh_table[i].sh_offset    = (Elf64_Off) sh32->sh_offset;
-  sh_table[i].sh_size      = (uint64_t) sh32->sh_size;
-  sh_table[i].sh_link      = sh32->sh_link;
-  sh_table[i].sh_info      = sh32->sh_info;
-  sh_table[i].sh_addralign = (uint64_t) sh32->sh_addralign;
-  sh_table[i].sh_entsize   = (uint64_t) sh32->sh_entsize;
+  sh_tbl[i].sh_name      = sh32->sh_name;
+  sh_tbl[i].sh_type      = sh32->sh_type;
+  sh_tbl[i].sh_flags     = sh32->sh_flags;
+  sh_tbl[i].sh_addr      = (Elf64_Addr) sh32->sh_addr;
+  sh_tbl[i].sh_offset    = (Elf64_Off) sh32->sh_offset;
+  sh_tbl[i].sh_size      = (uint64_t) sh32->sh_size;
+  sh_tbl[i].sh_link      = sh32->sh_link;
+  sh_tbl[i].sh_info      = sh32->sh_info;
+  sh_tbl[i].sh_addralign = (uint64_t) sh32->sh_addralign;
+  sh_tbl[i].sh_entsize   = (uint64_t) sh32->sh_entsize;
   free(sh32);
 }
 

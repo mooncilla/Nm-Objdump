@@ -18,7 +18,7 @@ bool is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 	return (0);
 }
 
-void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
+void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
 {
 	int i;
 
@@ -27,9 +27,9 @@ void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
   while (++i < eh->e_shnum)
   {
     if (eh->e_ident[EI_CLASS] == ELFCLASS32)
-      fill_Sh32(fd, i, sh_table);
+      fill_Sh32(fd, i, sh_tbl);
     else
-      read(fd, &sh_table[i], sizeof(Elf64_Shdr));
+      read(fd, &sh_tbl[i], sizeof(Elf64_Shdr));
   }
 }
 
@@ -92,7 +92,7 @@ void	print_section(char *s_str, Elf64_Shdr *shdr)
   }
 }
 
-void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
+void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
 {
 	int i;
   char *str_ptr;
@@ -100,24 +100,24 @@ void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_table)
   char *sh_strtab_p;
 
   i = -1;
-  sh_strtab = &sh_table[eh->e_shstrndx];
+  sh_strtab = &sh_tbl[eh->e_shstrndx];
   sh_strtab_p = malloc(sh_strtab->sh_size);
   lseek(fd, (off_t)sh_strtab->sh_offset, SEEK_SET);
   read(fd, sh_strtab_p, sh_strtab->sh_size);
 	while (++i < eh->e_shnum)
   {
-    if (sh_table[i].sh_type != SHT_NOBITS
-      && sh_table[i].sh_type != SHT_SYMTAB
-      && sh_table[i].sh_type != SHT_NULL
-      && (sh_table[i].sh_type != SHT_STRTAB
-      || sh_table[i].sh_flags & SHF_ALLOC))
+    if (sh_tbl[i].sh_type != SHT_NOBITS
+      && sh_tbl[i].sh_type != SHT_SYMTAB
+      && sh_tbl[i].sh_type != SHT_NULL
+      && (sh_tbl[i].sh_type != SHT_STRTAB
+      || sh_tbl[i].sh_flags & SHF_ALLOC))
     {
-      str_ptr = malloc(sh_table[i].sh_size);
-      lseek(fd, (off_t)sh_table[i].sh_offset, SEEK_SET);
-      read(fd, str_ptr, sh_table[i].sh_size);
+      str_ptr = malloc(sh_tbl[i].sh_size);
+      lseek(fd, (off_t)sh_tbl[i].sh_offset, SEEK_SET);
+      read(fd, str_ptr, sh_tbl[i].sh_size);
       printf("Contents of section %s:\n",
-      sh_strtab_p +  sh_table[i].sh_name);
-      print_section(str_ptr, &sh_table[i]);
+      sh_strtab_p +  sh_tbl[i].sh_name);
+      print_section(str_ptr, &sh_tbl[i]);
       free(str_ptr);
     }
 	}

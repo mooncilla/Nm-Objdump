@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 13:40:24 2017 Full Name
-** Last update	Sat Feb 25 00:25:30 2017 Full Name
+** Last update	Sat Feb 25 22:22:18 2017 Full Name
 */
 
 #include      "nm.h"
@@ -39,12 +39,9 @@ static char	try_shdr_name(const char *name)
   return ('?');
 }
 
-
-char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
+char    first_type_check(char c, Elf64_Shdr *shdr,
+   Elf64_Sym *sym, char *sh_strtab_p)
 {
-  char  c;
-
-  c = '?';
   if (ELF64_ST_BIND(sym->st_info) == STB_GNU_UNIQUE)
     c = 'u';
   else if (ELF64_ST_BIND(sym->st_info) == STB_WEAK)
@@ -59,45 +56,55 @@ char            print_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
     c = 'C';
   else if (sym->st_shndx == SHN_ABS)
     c = 'A';
-  else if (sym->st_shndx != SHN_ABS)
-      {
-        c = try_shdr_name(sh_strtab_p +  shdr[sym->st_shndx].sh_name);
-        if (c != '?')
-          {
-            if (ELF32_ST_BIND(sym->st_info) == STB_GLOBAL)
-          c -= 32;
-          return(c);
-        }
-      }
-  if (c != '?')
+  else
   {
-     if (ELF32_ST_BIND(sym->st_info) == STB_LOCAL)
-       c += 32;
+    c = try_shdr_name(sh_strtab_p +  shdr[sym->st_shndx].sh_name);
+    if (c != '?')
+    {
+      if (ELF32_ST_BIND(sym->st_info) == STB_GLOBAL)
+        c -= 32;
       return (c);
     }
-  else if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
+  }
+  return (c);
+}
+
+char        second_type_check(char c, Elf64_Shdr *shdr,
+  Elf64_Sym *sym, char *sh_strtab_p)
+{
+  if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
-    c = 'B';
+    return ('B');
   else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
        && shdr[sym->st_shndx].sh_flags == SHF_ALLOC)
-    c = 'R';
+    return ('R');
   else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
-    c = 'D';
+    return ('D');
   else if (shdr[sym->st_shndx].sh_type == SHT_PROGBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_EXECINSTR))
-    c = 'T';
+     return ('T');
   else if (shdr[sym->st_shndx].sh_type == SHT_DYNAMIC)
-    c = 'D';
+     return ('D');
   else if ((shdr->sh_flags & SHF_WRITE) != SHF_WRITE)
     {
       if (shdr->sh_type == SHT_GROUP)
 	      return ('n');
-      return ('r');
+      return ('R');
     }
   else if (shdr->sh_type == SHT_PROGBITS || shdr->sh_type == SHT_DYNAMIC)
     return ('d');
+  return (c);
+}
+
+char         get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
+{
+  char  c;
+
+  if ((c = first_type_check('?', shdr, sym, sh_strtab_p)) != '?')
+      return (c);
+  c = second_type_check('?', shdr, sym, sh_strtab_p);
   if (c != '?' && ELF32_ST_BIND(sym->st_info) == STB_LOCAL)
     c += 32;
-  return c;
+  return (c);
 }
