@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Sun Feb 26 21:23:10 2017 Full Name
-** Last update	Sun Feb 26 21:25:04 2017 Full Name
+** Last update	Sun Feb 26 21:42:33 2017 Full Name
 */
 
 #include  "objdump.h"
@@ -75,7 +75,7 @@ void print_flags(Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
 
 int	print_header(Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl, char *name)
 {
-  printf("\n%s:\tfile format %s\n", name, "elf64-x86-64");
+  printf("\n%s:     file format %s\n", name, "elf64-x86-64");
   printf("architecture: %s",
    (eh->e_machine == EM_X86_64 ? "i386:x86-64" : "UNKNOWN!"));
  	print_flags(eh, sh_tbl);

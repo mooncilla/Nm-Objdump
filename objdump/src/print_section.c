@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Sun Feb 26 02:42:23 2017 Full Name
-** Last update	Sun Feb 26 21:33:05 2017 Full Name
+** Last update	Sun Feb 26 22:14:43 2017 Full Name
 */
 
 #include  "objdump.h"
@@ -92,7 +92,7 @@ void print_section_tables(int fd, Elf64_Ehdr *eh,
   {
     if (sh_tbl[i].sh_type != SHT_NOBITS && sh_tbl[i].sh_type != SHT_SYMTAB
       && sh_tbl[i].sh_type != SHT_NULL && (sh_tbl[i].sh_type != SHT_STRTAB
-      || sh_tbl[i].sh_flags & SHF_ALLOC))
+      || sh_tbl[i].sh_flags & SHF_ALLOC) && sh_tbl[i].sh_name)
     {
       str_ptr = malloc(sh_tbl[i].sh_size);
       lseek(fd, (off_t)sh_tbl[i].sh_offset, SEEK_SET);
