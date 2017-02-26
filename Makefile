@@ -8,17 +8,13 @@
 ## Last update Sat Feb 11 14:27:40 2017 
 ##
 
-CC		=       gcc -g -g3
+CC		=       gcc
 
 RM		=       rm -rf
 
-CFLAGS		+=	-Wall -Wextra -W #-Werror
+CFLAGS		+=	-Wall -Wextra -W -Werror
 CFLAGS		+=	-I./nm/includes/
 CFLAGS		+=	-I./objdump/includes/
-
-NMINCLUDE	=	-I./nm/includes/
-
-ODINCLUDE	=	-I./objdump/includes/
 
 NMNAME		=	my_nm
 

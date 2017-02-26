@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Sun Feb 26 02:42:23 2017 Full Name
-** Last update	Sun Feb 26 15:23:52 2017 Full Name
+** Last update	Sun Feb 26 15:32:18 2017 Full Name
 */
 
 #include  "objdump.h"
@@ -19,9 +19,8 @@ unsigned int hexa_length(unsigned x)
    n = 0;
    while(x != 0)
    {
-       // x = x/10
-       x /= 16;
-       ++n;
+     x /= 16;
+     ++n;
    }
    return (n);
 }
