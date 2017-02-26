@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Sun Feb 26 02:42:23 2017 Full Name
-** Last update	Sun Feb 26 15:32:18 2017 Full Name
+** Last update	Sun Feb 26 21:33:05 2017 Full Name
 */
 
 #include  "objdump.h"
@@ -15,9 +15,9 @@ unsigned int hexa_length(unsigned x)
    int n;
 
    if (x <= 16)
-    return(1);
+    return (1);
    n = 0;
-   while(x != 0)
+   while (x != 0)
    {
      x /= 16;
      ++n;
@@ -53,12 +53,15 @@ void	print_section(char *s_str, Elf64_Shdr *shdr)
   char		tmp[17];
   unsigned int	shdr_end;
   unsigned int	i;
+  unsigned int  hex_l;
 
   shdr_end = 0;
   while (shdr_end < shdr->sh_size)
   {
     memset(tmp, ' ', 16);
-    printf(" %0*lx", hexa_length(shdr->sh_addr + shdr->sh_size),
+    hex_l = hexa_length(shdr->sh_addr +
+       (shdr->sh_size - ((shdr->sh_size%16 == 0 ? 16 : shdr->sh_size%16))));
+    printf(" %0*lx", (hex_l <= 4 ? 4 : hex_l),
     shdr->sh_addr + shdr_end);
     i = print_s_line_bytes(s_str, shdr_end, shdr, tmp);
     shdr_end += i;

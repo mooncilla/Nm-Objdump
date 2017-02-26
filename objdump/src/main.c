@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 11:09:24 2017 Full Name
-** Last update	Sun Feb 26 14:52:28 2017 Full Name
+** Last update	Sun Feb 26 21:32:08 2017 Full Name
 */
 
 #include      "objdump.h"
@@ -16,27 +16,6 @@ bool is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 		return (1);
   printf("%s: %s: File format not recognized\n", name, file_name);
 	return (0);
-}
-
-void print_type(Elf64_Ehdr *eh, int i)
-{
-	if (eh->e_flags & BFD_NO_FLAGS)
-		printf("BFD_NO_FLAGS");
-	if (eh->e_flags	& HAS_SYMS)
-		exit(0);
-	(i < 10 ? print_type(eh, ++i) : (void)0);
-}
-
-int	print_header(Elf64_Ehdr *eh, char *name)
-{
-  printf("\n%s:\tfile format %s\n", name, "elf64-x86-64");
-  printf("architecture: %s, flags 0x%08x:\n",
-   (eh->e_machine == EM_X86_64 ? "i386:x86-64" : "UNKNOWN!"),
-	 eh->e_flags);
- 	print_type(eh, 0);
-	printf("start address 0x%0*lx\n\n", eh->e_machine == EM_X86_64 ? 16 : 8,
-   eh->e_entry);
-  return (1);
 }
 
 void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
@@ -73,7 +52,7 @@ void launch_objdump(int fd, int ac, char *name, char *file_name)
     {
       sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
       read_section_header_table(fd, eh, sh_tbl);
-      print_header(eh, (ac == 1) ? "a.out" : file_name);
+      print_header(eh, sh_tbl,(ac == 1) ? "a.out" : file_name);
       print_section_tables(fd, eh, sh_tbl, &sh_tbl[eh->e_shstrndx]);
       free(eh);
       free(sh_tbl);

@@ -12,7 +12,7 @@ CC		=       gcc
 
 RM		=       rm -rf
 
-CFLAGS		+=	-Wall -Wextra -W -Werror
+CFLAGS		+=	-Wall -Wextra -W #-Werror
 CFLAGS		+=	-I./nm/includes/
 CFLAGS		+=	-I./objdump/includes/
 
@@ -20,7 +20,8 @@ NMNAME		=	my_nm
 
 NMSRCS		=	nm/src/main.c			\
 			nm/src/fill_32_struct.c		\
-			nm/src/get_type.c
+			nm/src/get_type.c		\
+			nm/src/print_symbols.c
 
 NMOBJS		=	$(NMSRCS:.c=.o)
 
@@ -28,7 +29,8 @@ ODNAME		=	my_objdump
 
 ODSRCS		=	objdump/src/main.c		\
 			objdump/src/fill_32_struct.c	\
-			objdump/src/print_section.c
+			objdump/src/print_section.c	\
+			objdump/src/print_header.c
 
 ODOBJS		=	$(ODSRCS:.c=.o)
 

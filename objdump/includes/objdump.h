@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 23:30:28 2017 Full Name
-** Last update	Sun Feb 26 11:22:41 2017 Full Name
+** Last update	Sun Feb 26 21:25:35 2017 Full Name
 */
 
 #ifndef _OBJDUMP_H_
@@ -32,6 +32,7 @@
 #define WP_TEXT 0x80
 #define D_PAGED 0x100
 
+int	print_header(Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl, char *name);
 void					fill_Eh32(Elf64_Ehdr *eh);
 void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl);
 void          print_section_tables(int fd, Elf64_Ehdr *eh,

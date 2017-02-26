@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 23:30:28 2017 Full Name
-** Last update	Sun Feb 26 03:14:26 2017 Full Name
+** Last update	Sun Feb 26 21:29:40 2017 Full Name
 */
 
 #ifndef _NM_H_
@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
 #include <elf.h>
 
 #define IS_32 core->eh->e_ident[EI_CLASS] == ELFCLASS32
@@ -39,4 +38,7 @@ char         get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p);
 void					fill_Sym32(int fd, Elf64_Sym *buff);
 void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl);
 void					fill_Eh32(Elf64_Ehdr *eh);
+void print_symbols(int fd, t_core *core);
+void			add_to_list(t_list *list, Elf64_Sym *symb, char *str);
+
 #endif /* !_NM_H_ */
