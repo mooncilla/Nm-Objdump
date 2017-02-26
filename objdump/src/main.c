@@ -8,22 +8,22 @@
 ** Last update	Sun Feb 26 21:32:08 2017 Full Name
 */
 
-#include      "objdump.h"
+#include	"objdump.h"
 
-bool is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
+int		is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 {
-	if (strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
-		return (1);
+  if (strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
+    return (1);
   printf("%s: %s: File format not recognized\n", name, file_name);
-	return (0);
+  return (0);
 }
 
-void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
+void		read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
 {
-	int i;
+  int		i;
 
   i = -1;
-	lseek(fd, (off_t)eh->e_shoff, SEEK_SET);
+  lseek(fd, (off_t)eh->e_shoff, SEEK_SET);
   while (++i < eh->e_shnum)
   {
     if (eh->e_ident[EI_CLASS] == ELFCLASS32)
@@ -33,10 +33,10 @@ void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
   }
 }
 
-void launch_objdump(int fd, int ac, char *name, char *file_name)
+void		launch_objdump(int fd, int ac, char *name, char *file_name)
 {
-  Elf64_Ehdr *eh;
-  Elf64_Shdr *sh_tbl;
+  Elf64_Ehdr	*eh;
+  Elf64_Shdr	*sh_tbl;
 
   eh = malloc(sizeof(Elf64_Ehdr));
   lseek(fd, (off_t)0, SEEK_SET);
@@ -60,21 +60,19 @@ void launch_objdump(int fd, int ac, char *name, char *file_name)
   }
 }
 
-int main(int ac, char *av[])
+int		main(int ac, char *av[])
 {
-	int fd;
-  int i;
+  int		fd;
+  int		i;
 
   i = (ac == 1 ? -1 : 0);
   while (++i < ac)
   {
     fd = open((ac == 1) ? "a.out" : av[i], O_RDONLY | O_SYNC);
-	  if (fd > 0)
-    {
+    if (fd > 0)
       launch_objdump(fd, ac, av[0], (ac == 1) ? "a.out" : av[i]);
-    }
     else
       printf("%s: '%s': No such file\n", av[0], av[i]);
   }
-	return 0;
+  return 0;
 }

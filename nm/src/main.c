@@ -8,20 +8,20 @@
 ** Last update	Sun Feb 26 21:30:24 2017 Full Name
 */
 
-#include      "nm.h"
+#include	"nm.h"
 
-int is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
+int		is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 {
-	if (strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
-	return (1);
-	printf("%s: %s: File format not recognized\n", name, file_name);
-	return (0);
+  if (strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
+    return (1);
+  printf("%s: %s: File format not recognized\n", name, file_name);
+  return (0);
 }
 
-void			add_to_list(t_list *list, Elf64_Sym *symb, char *str)
+void		add_to_list(t_list *list, Elf64_Sym *symb, char *str)
 {
-  t_list *tmp;
-  Elf64_Sym *sym_tmp;
+  t_list	*tmp;
+  Elf64_Sym	*sym_tmp;
 
   tmp = list;
   if (list->sym_tbl == NULL)
@@ -47,9 +47,9 @@ void			add_to_list(t_list *list, Elf64_Sym *symb, char *str)
   }
 }
 
-void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
+void		read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
 {
-	int i;
+  int		i;
 
   i = -1;
   lseek(fd, eh->e_shoff, SEEK_SET);
@@ -62,11 +62,11 @@ void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
   }
 }
 
-void launch_nm(int fd, int ac, char *name, char *file_name)
+void		launch_nm(int fd, int ac, char *name, char *file_name)
 {
-	t_core *core;
+  t_core	*core;
 
-	core = malloc(sizeof(t_core));
+  core = malloc(sizeof(t_core));
   core->eh = malloc(sizeof(Elf64_Ehdr));
   lseek(fd, (off_t)0, SEEK_SET);
   read(fd, core->eh, sizeof(Elf64_Ehdr));
@@ -87,14 +87,14 @@ void launch_nm(int fd, int ac, char *name, char *file_name)
       free(core->sh_tbl);
     }
   }
-	free(core->eh);
-	free(core);
+  free(core->eh);
+  free(core);
 }
 
-int main(int ac, char *av[])
+int		main(int ac, char *av[])
 {
-  int fd;
-  int i;
+  int		fd;
+  int		i;
 
   setlocale(LC_ALL, "");
   i = (ac == 1 ? -1 : 0);
@@ -106,5 +106,5 @@ int main(int ac, char *av[])
     else
       printf("%s: '%s': No such file\n", av[0], av[i]);
     }
-	return 0;
+  return 0;
 }

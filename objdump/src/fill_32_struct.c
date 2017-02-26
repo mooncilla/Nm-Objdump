@@ -8,11 +8,11 @@
 ** Last update	Sun Feb 26 03:12:58 2017 Full Name
 */
 
-#include      "objdump.h"
+#include	"objdump.h"
 
-void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
+void		fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
 {
-  Elf32_Shdr *sh32;
+  Elf32_Shdr	*sh32;
 
   sh32 = malloc(sizeof(Elf32_Shdr));
   read(fd, sh32, sizeof(Elf32_Shdr));
@@ -29,9 +29,9 @@ void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
   free(sh32);
 }
 
-void					fill_Eh32(Elf64_Ehdr *eh)
+void		fill_Eh32(Elf64_Ehdr *eh)
 {
-  Elf32_Ehdr eh32;
+  Elf32_Ehdr	eh32;
 
   memcpy(&eh32, eh, sizeof(Elf32_Ehdr));
   eh->e_type      = eh32.e_type;

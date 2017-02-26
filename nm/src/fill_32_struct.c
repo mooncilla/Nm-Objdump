@@ -8,11 +8,11 @@
 ** Last update	Sun Feb 26 03:15:35 2017 Full Name
 */
 
-#include      "nm.h"
+#include       	"nm.h"
 
-void					fill_Sym32(int fd, Elf64_Sym *buff)
+void		fill_Sym32(int fd, Elf64_Sym *buff)
 {
-  Elf32_Sym *buff_32;
+  Elf32_Sym     *buff_32;
 
   buff_32 = malloc(sizeof(Elf32_Sym));
   read(fd, buff_32, sizeof(Elf32_Sym));
@@ -25,13 +25,13 @@ void					fill_Sym32(int fd, Elf64_Sym *buff)
   free(buff_32);
 }
 
-void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
+void		fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
 {
   Elf32_Shdr *sh32;
 
   sh32 = malloc(sizeof(Elf32_Shdr));
   read(fd, sh32, sizeof(Elf32_Shdr));
-  sh_tbl[i].sh_name      = sh32->sh_name;
+  sh_tbl[i].sh_name	 = sh32->sh_name;
   sh_tbl[i].sh_type      = sh32->sh_type;
   sh_tbl[i].sh_flags     = sh32->sh_flags;
   sh_tbl[i].sh_addr      = (Elf64_Addr) sh32->sh_addr;
@@ -44,9 +44,9 @@ void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
   free(sh32);
 }
 
-void					fill_Eh32(Elf64_Ehdr *eh)
+void		fill_Eh32(Elf64_Ehdr *eh)
 {
-  Elf32_Ehdr eh32;
+  Elf32_Ehdr	eh32;
 
   memcpy(&eh32, eh, sizeof(Elf32_Ehdr));
   eh->e_type      = eh32.e_type;

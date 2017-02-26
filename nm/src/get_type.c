@@ -8,7 +8,7 @@
 ** Last update	Sun Feb 26 02:51:20 2017 Full Name
 */
 
-#include      "nm.h"
+#include	"nm.h"
 
 static char	try_shdr_name(const char *name)
 {
@@ -39,8 +39,8 @@ static char	try_shdr_name(const char *name)
   return ('?');
 }
 
-char    first_type_check(char c, Elf64_Shdr *shdr,
-   Elf64_Sym *sym, char *sh_strtab_p)
+char		first_type_check(char c, Elf64_Shdr *shdr,
+				 Elf64_Sym *sym, char *sh_strtab_p)
 {
   if (ELF64_ST_BIND(sym->st_info) == STB_GNU_UNIQUE)
     c = 'u';
@@ -69,7 +69,7 @@ char    first_type_check(char c, Elf64_Shdr *shdr,
   return (c);
 }
 
-char        second_type_check(char c, Elf64_Shdr *shdr, Elf64_Sym *sym)
+char		second_type_check(char c, Elf64_Shdr *shdr, Elf64_Sym *sym)
 {
   if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
@@ -96,7 +96,7 @@ char        second_type_check(char c, Elf64_Shdr *shdr, Elf64_Sym *sym)
   return (c);
 }
 
-char         get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
+char		get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
 {
   char  c;
 
