@@ -12,7 +12,7 @@ CC		=       gcc
 
 RM		=       rm -rf
 
-CFLAGS		+=	-Wall -Wextra -W #-Werror
+CFLAGS		+=	-Wall -Wextra -W -Werror
 CFLAGS		+=	-I./nm/includes/
 CFLAGS		+=	-I./objdump/includes/
 
