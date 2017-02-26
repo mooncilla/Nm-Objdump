@@ -31,7 +31,8 @@ NMOBJS		=	$(NMSRCS:.c=.o)
 ODNAME		=	my_objdump
 
 ODSRCS		=	objdump/src/main.c		\
-			objdump/src/fill_32_struct.c	
+			objdump/src/fill_32_struct.c	\
+			objdump/src/print_section.c
 
 ODOBJS		=	$(ODSRCS:.c=.o)
 

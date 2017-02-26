@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 11:09:24 2017 Full Name
-** Last update	Sat Feb 25 22:28:27 2017 Full Name
+** Last update	Sun Feb 26 03:13:09 2017 Full Name
 */
 
 #include      "nm.h"
@@ -157,7 +157,7 @@ void launch_nm(int fd, int ac, char *name, char *file_name)
   if (is_ELF(core->eh, name, (ac == 1) ? "a.out" : file_name) == 1)
   {
     if (IS_32)
-      fill_Eh32(core->eh, *core->eh);
+      fill_Eh32(core->eh);
     if (lseek(fd, core->eh->e_shoff, SEEK_SET)
       + (core->eh->e_shentsize * core->eh->e_shnum) > lseek(fd, 0, SEEK_END))
       fprintf(stderr, "%s: %s: File truncated\n", name, file_name);

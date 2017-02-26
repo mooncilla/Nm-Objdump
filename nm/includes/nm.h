@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 23:30:28 2017 Full Name
-** Last update	Sat Feb 25 19:46:53 2017 Full Name
+** Last update	Sun Feb 26 03:14:26 2017 Full Name
 */
 
 #ifndef _NM_H_
@@ -35,4 +35,8 @@ typedef struct  s_core
   int           fd;
 }               t_core;
 
+char         get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p);
+void					fill_Sym32(int fd, Elf64_Sym *buff);
+void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl);
+void					fill_Eh32(Elf64_Ehdr *eh);
 #endif /* !_NM_H_ */

@@ -1,21 +1,42 @@
-  /*
+/*
 ** main.c for PSU_2016_nmobjdump
 **
 ** Made by	Full Name
 ** Login	gastal_r
 **
 ** Started on	Thu Feb 16 11:09:24 2017 Full Name
-** Last update	Sat Feb 18 00:33:15 2017 Full Name
+** Last update	Sun Feb 26 14:52:28 2017 Full Name
 */
 
 #include      "objdump.h"
 
 bool is_ELF(Elf64_Ehdr *eh, char *name, char *file_name)
 {
-	if(strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
+	if (strncmp((char*)eh->e_ident, "\177ELF", 4) == 0)
 		return (1);
   printf("%s: %s: File format not recognized\n", name, file_name);
 	return (0);
+}
+
+void print_type(Elf64_Ehdr *eh, int i)
+{
+	if (eh->e_flags & BFD_NO_FLAGS)
+		printf("BFD_NO_FLAGS");
+	if (eh->e_flags	& HAS_SYMS)
+		exit(0);
+	(i < 10 ? print_type(eh, ++i) : (void)0);
+}
+
+int	print_header(Elf64_Ehdr *eh, char *name)
+{
+  printf("\n%s:\tfile format %s\n", name, "elf64-x86-64");
+  printf("architecture: %s, flags 0x%08x:\n",
+   (eh->e_machine == EM_X86_64 ? "i386:x86-64" : "UNKNOWN!"),
+	 eh->e_flags);
+ 	print_type(eh, 0);
+	printf("start address 0x%0*lx\n\n", eh->e_machine == EM_X86_64 ? 16 : 8,
+   eh->e_entry);
+  return (1);
 }
 
 void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
@@ -33,97 +54,6 @@ void read_section_header_table(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
   }
 }
 
-int	print_header(Elf64_Ehdr *eh, char *name)
-{
-  printf("\n%s:\tfile format %s\n", name, "elf64-x86-64");
-  printf("architecture: %s, flags 0x%08x:\n",
-   (eh->e_machine == EM_X86_64 ? "i386:x86-64" : "UNKNOWN!"),
-	 eh->e_flags);
-  printf("start address 0x%0*lx\n\n", eh->e_machine == EM_X86_64 ? 16 : 8,
-   eh->e_entry);
-  return (1);
-}
-
-unsigned int  print_s_line_bytes(char *s_str, unsigned int	shdr_end,
-  Elf64_Shdr *shdr, char	tmp[17])
-{
-  unsigned int	i;
-  unsigned int	j;
-
-  i = 0;
-  while (i < 16 && shdr_end + i < shdr->sh_size)
-  {
-    j = 0;
-    printf(" ");
-    while (j < 4 && shdr_end + i + j < shdr->sh_size)
-     {
-       printf("%02x", (unsigned char) s_str[shdr_end + i + j]);
-        tmp[i + j] = (isprint(s_str[shdr_end + i + j])
-         ? s_str[shdr_end + i + j] : '.');
-        ++j;
-     }
-     i += j;
-  }
-    return (i);
-}
-
-void	print_section(char *s_str, Elf64_Shdr *shdr)
-{
-  char		tmp[17];
-  unsigned int	shdr_end;
-  unsigned int	i;
-
-  shdr_end = 0;
-  while (shdr_end < shdr->sh_size)
-  {
-    memset(tmp, ' ', 16);
-    printf(" %04lx", shdr->sh_addr + shdr_end);
-    i = print_s_line_bytes(s_str, shdr_end, shdr, tmp);
-    shdr_end += i;
-    while (i < 16)
-    {
-      if (i % 4 == 0)
-        printf(" ");
-      printf("  ");
-      i++;
-    }
-    tmp[16] = '\0';
-    printf("  %s\n", tmp);
-  }
-}
-
-void print_section_tables(int fd, Elf64_Ehdr *eh, Elf64_Shdr *sh_tbl)
-{
-	int i;
-  char *str_ptr;
-  Elf64_Shdr *sh_strtab;
-  char *sh_strtab_p;
-
-  i = -1;
-  sh_strtab = &sh_tbl[eh->e_shstrndx];
-  sh_strtab_p = malloc(sh_strtab->sh_size);
-  lseek(fd, (off_t)sh_strtab->sh_offset, SEEK_SET);
-  read(fd, sh_strtab_p, sh_strtab->sh_size);
-	while (++i < eh->e_shnum)
-  {
-    if (sh_tbl[i].sh_type != SHT_NOBITS
-      && sh_tbl[i].sh_type != SHT_SYMTAB
-      && sh_tbl[i].sh_type != SHT_NULL
-      && (sh_tbl[i].sh_type != SHT_STRTAB
-      || sh_tbl[i].sh_flags & SHF_ALLOC))
-    {
-      str_ptr = malloc(sh_tbl[i].sh_size);
-      lseek(fd, (off_t)sh_tbl[i].sh_offset, SEEK_SET);
-      read(fd, str_ptr, sh_tbl[i].sh_size);
-      printf("Contents of section %s:\n",
-      sh_strtab_p +  sh_tbl[i].sh_name);
-      print_section(str_ptr, &sh_tbl[i]);
-      free(str_ptr);
-    }
-	}
-  free(sh_strtab_p);
-}
-
 void launch_objdump(int fd, int ac, char *name, char *file_name)
 {
   Elf64_Ehdr *eh;
@@ -135,7 +65,7 @@ void launch_objdump(int fd, int ac, char *name, char *file_name)
   if (is_ELF(eh, name, (ac == 1) ? "a.out" : file_name) == 1)
   {
     if (eh->e_ident[EI_CLASS] == ELFCLASS32)
-      fill_Eh32(eh, *eh);
+      fill_Eh32(eh);
     if (lseek(fd, eh->e_shoff, SEEK_SET)
      + (eh->e_shentsize * eh->e_shnum) > lseek(fd, 0, SEEK_END))
       fprintf(stderr, "%s: %s: File truncated\n", name, file_name);
@@ -144,7 +74,7 @@ void launch_objdump(int fd, int ac, char *name, char *file_name)
       sh_tbl = malloc(sizeof(Elf64_Shdr) * eh->e_shnum);
       read_section_header_table(fd, eh, sh_tbl);
       print_header(eh, (ac == 1) ? "a.out" : file_name);
-      print_section_tables(fd, eh, sh_tbl);
+      print_section_tables(fd, eh, sh_tbl, &sh_tbl[eh->e_shstrndx]);
       free(eh);
       free(sh_tbl);
     }

@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 12:38:41 2017 Full Name
-** Last update	Tue Feb 21 13:02:14 2017 Full Name
+** Last update	Sun Feb 26 03:15:35 2017 Full Name
 */
 
 #include      "nm.h"
@@ -44,8 +44,11 @@ void          fill_Sh32(int fd, int i, Elf64_Shdr *sh_tbl)
   free(sh32);
 }
 
-void					fill_Eh32(Elf64_Ehdr *eh, Elf32_Ehdr eh32)
+void					fill_Eh32(Elf64_Ehdr *eh)
 {
+  Elf32_Ehdr eh32;
+
+  memcpy(&eh32, eh, sizeof(Elf32_Ehdr));
   eh->e_type      = eh32.e_type;
   eh->e_machine   = eh32.e_machine;
   eh->e_version   = eh32.e_version;

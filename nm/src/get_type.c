@@ -5,7 +5,7 @@
 ** Login	gastal_r
 **
 ** Started on	Tue Feb 21 13:40:24 2017 Full Name
-** Last update	Sat Feb 25 22:22:18 2017 Full Name
+** Last update	Sun Feb 26 02:51:20 2017 Full Name
 */
 
 #include      "nm.h"
@@ -69,8 +69,7 @@ char    first_type_check(char c, Elf64_Shdr *shdr,
   return (c);
 }
 
-char        second_type_check(char c, Elf64_Shdr *shdr,
-  Elf64_Sym *sym, char *sh_strtab_p)
+char        second_type_check(char c, Elf64_Shdr *shdr, Elf64_Sym *sym)
 {
   if (shdr[sym->st_shndx].sh_type == SHT_NOBITS
        && shdr[sym->st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
@@ -103,7 +102,7 @@ char         get_type(Elf64_Sym *sym, Elf64_Shdr *shdr, char *sh_strtab_p)
 
   if ((c = first_type_check('?', shdr, sym, sh_strtab_p)) != '?')
       return (c);
-  c = second_type_check('?', shdr, sym, sh_strtab_p);
+  c = second_type_check('?', shdr, sym);
   if (c != '?' && ELF32_ST_BIND(sym->st_info) == STB_LOCAL)
     c += 32;
   return (c);
